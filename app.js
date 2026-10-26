@@ -200,6 +200,21 @@ function bindAdd(btnId, selId, key){
   };
 }
 
+/* --- Campos do formulário: gravar no draft ao alterar (v1.1) --- */
+[['f-solicitante','solicitante','change'],
+ ['f-empresa','empresa','change'],
+ ['f-local','local','change'],
+ ['f-equip','equip','input'],
+ ['f-desc','desc','input']].forEach(([id,field,evt])=>{
+  const el = document.getElementById(id);
+  el.addEventListener(evt, ()=>{ draft[field] = el.value; save(); });
+});
+
+/* --- Botões + Adicionar (ligação v1.1) --- */
+bindAdd('#btn-ferr', '#sel-ferr', 'ferr');
+bindAdd('#btn-quim', '#sel-quim', 'quim');
+bindAdd('#btn-trab', '#sel-trab', 'trab');
+
 /* --- Segmentos Sim/Não --- */
 document.querySelectorAll('.seg').forEach(seg=>{
   seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -217,7 +232,8 @@ document.querySelectorAll('.seg').forEach(seg=>{
 
 /* --- Emitir (EmitirAutorizacao do VBA) --- */
 $('#btn-emitir').onclick = ()=>{
-  if(!draft.solicitante || !draft.empresa || !draft.local || !draft.desc){
+  const v = x => String(x||'').trim();
+  if(!v(draft.solicitante) || !v(draft.empresa) || !v(draft.local) || !v(draft.desc)){
     showModal('Campos em falta','Preencha Solicitante, Empresa, Local e Descrição antes de emitir.',[{label:'OK'}]); return;
   }
   const g = riscoGlobal(draft.riscos.map(r=>nivelRisco(r.s,r.e,r.c)));
