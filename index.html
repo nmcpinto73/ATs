@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Autorizações de Trabalho</title>
+<meta name="description" content="Gestão móvel de Autorizações de Trabalho — avaliação de riscos, LOTO, histórico e painel.">
+<meta name="theme-color" content="#0e2a47">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --navy:#0e2a47; --navy2:#17395f; --bg:#eef2f7; --card:#ffffff; --ink:#1c2b3a;
+  --muted:#64748b; --line:#dfe6ef;
+  --red:#c62828; --red-bg:#fdecea; --yellow:#f9a825; --yellow-bg:#fff8e1;
+  --green:#2e7d32; --green-bg:#e8f5e9; --orange:#ef6c00; --orange-bg:#fff3e0;
+  --blue:#1565c0; --blue-bg:#e7f0fb; --radius:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+.appbar{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.appbar h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.2px}
+.appbar .sub{font-size:11.5px;opacity:.85;margin-top:2px}
+#btn-install{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.12);color:#fff;border-radius:20px;padding:7px 12px;font-size:12.5px;font-weight:600}
+main{padding:12px 12px 20px;max-width:720px;margin:0 auto}
+.view[hidden]{display:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(15,40,70,.06)}
+.card h2{margin:0 0 10px;font-size:13.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--navy)}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+select,input[type=text],input[type=number],textarea{width:100%;padding:10px 11px;border:1px solid #c7d2df;border-radius:10px;font-size:15px;background:#fbfdff;color:var(--ink);font-family:inherit}
+select:focus,input:focus,textarea:focus{outline:2px solid #9ec1e8;border-color:#9ec1e8}
+textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.status-strip{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:13px;background:#eaf1f9;border-color:#c9d9ec}
+.status-strip b{color:var(--navy)}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
+.badge.aberta{background:var(--orange)} .badge.fechada{background:var(--green)}
+.badge.alto{background:var(--red)} .badge.medio{background:var(--yellow);color:#4a3b00} .badge.baixo{background:var(--green)}
+.seg{display:inline-flex;border:1px solid #c7d2df;border-radius:10px;overflow:hidden}
+.seg button{border:0;background:#f4f7fb;color:var(--muted);padding:9px 18px;font-size:14px;font-weight:600;min-width:64px}
+.seg button.on[data-val="Sim"]{background:var(--orange);color:#fff}
+.seg button.on[data-val="Não"]{background:#5b6b7d;color:#fff}
+.togrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.togrow:last-child{border-bottom:0}
+.togrow label{font-size:14px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--blue-bg);border:1px solid #c4d9f2;color:#123f77;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600}
+.chip button{border:0;background:transparent;color:#8a2be2;font-weight:800;font-size:13px;color:#456a99;padding:0}
+.addline{display:grid;grid-template-columns:1fr auto;gap:8px}
+.btn{border:0;border-radius:11px;padding:12px 16px;font-size:15px;font-weight:700;cursor:pointer}
+.btn.primary{background:var(--navy);color:#fff}
+.btn.success{background:var(--green);color:#fff}
+.btn.ghost{background:#e8eef6;color:var(--navy)}
+.btn.small{padding:8px 12px;font-size:13px;border-radius:9px}
+.btn.warn{background:var(--orange);color:#fff}
+.risk-row{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:#fbfdff}
+.risk-row .rgrid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:8px}
+.risk-row .rgrid label{font-size:10.5px;color:var(--muted);font-weight:700;display:block}
+.rv{min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-weight:800;font-size:15px;border:1px solid #c7d2df;background:#fff}
+.rv.g{background:var(--green-bg);color:var(--green);border-color:#a5d6a7}
+.rv.y{background:var(--yellow-bg);color:#7a5d00;border-color:#ffe082}
+.rv.r{background:var(--red-bg);color:var(--red);border-color:#ef9a9a}
+.global-strip{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.global-strip .big{font-size:16px;font-weight:800;color:var(--navy)}
+.global-strip .badge{font-size:15px;padding:8px 20px}
+#global-badge.bg-alto{background:var(--red);color:#fff}
+#global-badge.bg-medio{background:var(--yellow);color:#4a3b00}
+#global-badge.bg-baixo{background:var(--green);color:#fff}
+#global-badge.bg-none{background:#d7dfe9;color:#5b6b7d}
+.legend{font-size:11.5px;color:var(--muted);margin-top:8px}
+#loto-card.off{opacity:.5;pointer-events:none;background:#f1f3f6;border-style:dashed}
+#loto-card.off h2{color:#9aa5b1}
+.loto-row{display:grid;grid-template-columns:1fr;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:#fbfdff}
+.missing{background:var(--red-bg)!important;border-color:#ef9a9a!important}
+.missing select,.missing input{border-color:#ef9a9a;background:#fff}
+.sign-row{display:grid;grid-template-columns:1fr;gap:12px}
+.sign{border-top:1px dotted #9db0c4;padding-top:22px;text-align:center;font-size:13px;color:var(--muted)}
+.sign b{color:var(--ink)}
+.sign.sst{border-color:var(--red)}
+.sign.sst b{color:var(--red)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 4px}
+.hist-item{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff}
+.hist-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.hist-top .num{font-weight:800;color:var(--navy);font-size:15px}
+.hist-meta{font-size:13px;color:var(--muted);display:grid;gap:2px;margin-bottom:8px}
+.hist-actions{display:flex;gap:8px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center}
+.kpi .v{font-size:26px;font-weight:800;color:var(--navy)}
+.kpi .l{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.kpi.alto .v{color:var(--red)} .kpi.medio .v{color:#b98900} .kpi.baixo .v{color:var(--green)}
+.kpi.abertas .v{color:var(--orange)} .kpi.fechadas .v{color:var(--green)}
+.especiais{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.esp{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+.esp .v{font-size:20px;font-weight:800}
+.esp .l{font-size:10.5px;color:var(--muted);font-weight:700}
+.esp.hot .v{color:var(--red)}
+table.res{width:100%;border-collapse:collapse;font-size:13px}
+table.res th,table.res td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+table.res th{font-size:11px;text-transform:uppercase;color:var(--muted)}
+table.res td.num{text-align:right;font-weight:700}
+table.res td.ralto{color:var(--red)} table.res td.rmedio{color:#b98900} table.res td.rbaixo{color:var(--green)}
+.lstblock{margin-bottom:14px}
+.lstblock h3{font-size:13px;margin:0 0 6px;color:var(--navy)}
+.lstadd{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:6px}
+.note{font-size:12px;color:var(--muted)}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:40;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.navbtn{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:10.5px;font-weight:700;color:#7b8b9d;border-radius:10px}
+.navbtn .ic{font-size:19px;line-height:1}
+.navbtn.on{color:var(--navy);background:#eaf1f9}
+#alerts-banner{max-width:720px;margin:10px auto 0;padding:0 12px}
+#alerts-banner .inner{background:var(--yellow-bg);border:1px solid #ffe082;border-radius:12px;padding:10px 12px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+#alerts-banner .inner.crit{background:var(--red-bg);border-color:#ef9a9a}
+#alerts-banner button{border:0;background:transparent;font-weight:800;color:inherit;font-size:15px}
+#modal-root,#detail-root{position:fixed;inset:0;z-index:60;background:rgba(10,25,45,.55);display:flex;align-items:flex-end;justify-content:center}
+#modal-root[hidden],#detail-root[hidden]{display:none}
+.sheet{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:720px;max-height:88vh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 8px;font-size:17px}
+.sheet .msg{white-space:pre-line;font-size:14.5px;margin-bottom:14px}
+.sheet .btns{display:flex;gap:10px;flex-wrap:wrap}
+#detail-root{align-items:stretch}
+.detail-card{background:#fff;width:100%;max-width:760px;margin:12px auto;border-radius:14px;padding:16px;overflow:auto}
+.detail-card h2{text-align:center;margin:2px 0 0;font-size:18px;color:var(--navy)}
+.detail-card .sub{text-align:center;font-size:12px;color:var(--muted);margin-bottom:10px}
+.dtable{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:10px}
+.dtable td{border:1px solid #d5dde8;padding:7px 9px;vertical-align:top}
+.dtable td.k{background:#f2f6fb;font-weight:700;width:32%;color:#33506e;font-size:12px}
+.dtable td.s{background:#fbfdff;font-weight:700;width:18%;color:#33506e;font-size:12px}
+table.risks-d{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px}
+table.risks-d th,table.risks-d td{border:1px solid #d5dde8;padding:6px 7px}
+table.risks-d th{background:#f2f6fb;font-size:11px;color:#33506e}
+.detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;background:#22354d;color:#fff;padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:600;max-width:88vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.show{opacity:1}
+@media print{
+  body>*{display:none!important}
+  #detail-root{display:block!important;position:static;background:#fff}
+  #detail-root .detail-card{max-width:none;margin:0;border-radius:0;box-shadow:none}
+  .detail-actions{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div>
+    <h1>Autorização de Trabalho</h1>
+    <div class="sub" id="hdr-company">—</div>
+  </div>
+  <button id="btn-install" hidden>⤓ Instalar</button>
+</header>
+
+<div id="alerts-banner" hidden><div class="inner" id="alerts-inner"><span id="alerts-text"></span><button id="alerts-close">✕</button></div></div>
+
+<main>
+  <!-- ============ FORMULÁRIO ============ -->
+  <section id="view-form" class="view">
+    <div class="card status-strip" id="form-status"><span>Nº: <b id="st-num">(automático)</b></span><span>Estado: <b id="st-estado">-</b></span><span id="st-data"></span></div>
+
+    <div class="card">
+      <h2>📋 Identificação</h2>
+      <div class="row2">
+        <div class="field"><label>Solicitante</label><select id="f-solicitante"></select></div>
+        <div class="field"><label>Empresa executante</label><select id="f-empresa"></select></div>
+      </div>
+      <div class="field"><label>Local do trabalho</label><select id="f-local"></select></div>
+      <div class="field"><label>Equipamento</label><input type="text" id="f-equip" placeholder="Ex.: Bomba P-102"></div>
+      <div class="field"><label>Descrição dos trabalhos / serviços</label><textarea id="f-desc" placeholder="Descrever o trabalho a executar..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <h2>☣️ Classificação da zona</h2>
+      <div class="togrow"><label>Zona ATEX (atm. explosiva)?</label>
+        <div class="seg" data-field="atex"><button type="button" data-val="Sim">Sim</button><button type="button" data-val="Não" class="on">Não</button></div></div>
+    </div>
+
+    <div class="card">
+      <h2>➕ Autorizações adicionais necessárias</h2>
+      <div class="togrow"><label>Trabalhos em altura?</label>
+        <div class="seg" data-field="altura"><button type="button" data-val="Sim">Sim</button><button type="button" data-val="Não" class="on">Não</button></div></div>
+      <div class="togrow"><label>Trabalhos a quente?</label>
+        <div class="seg" data-field="quente"><button type="button" data-val="Sim">Sim</button><button type="button" data-val="Não" class="on">Não</button></div></div>
+      <div class="togrow"><label>Bloqueio/Etiquetagem (LOTO)?</label>
+        <div class="seg" data-field="loto"><button type="button" data-val="Sim">Sim</button><button type="button" data-val="Não" class="on">Não</button></div></div>
+      <div class="togrow"><label>Espaços confinados?</label>
+        <div class="seg" data-field="confinados"><button type="button" data-val="Sim">Sim</button><button type="button" data-val="Não" class="on">Não</button></div></div>
+      <div class="togrow"><label>Escavações?</label>
+        <div class="seg" data-field="escavacoes"><button type="button" data-val="Sim">Sim</button><button type="button" data-val="Não" class="on">Não</button></div></div>
+      <div class="togrow"><label>Máquinas de pressão?</label>
+        <div class="seg" data-field="pressao"><button type="button" data-val="Sim">Sim</button><button type="button" data-val="Não" class="on">Não</button></div></div>
+    </div>
+
+    <div class="card">
+      <h2>🔧 Ferramentas / equipamentos a utilizar</h2>
+      <div class="addline"><select id="sel-ferr"></select><button type="button" class="btn ghost small" id="btn-ferr">+ Adicionar</button></div>
+      <div class="chips" id="chips-ferr"></div>
+    </div>
+
+    <div class="card">
+      <h2>🧪 Produtos químicos com possível exposição</h2>
+      <div class="addline"><select id="sel-quim"></select><button type="button" class="btn ghost small" id="btn-quim">+ Adicionar</button></div>
+      <div class="chips" id="chips-quim"></div>
+    </div>
+
+    <div class="card">
+      <h2>👷 Trabalhadores afetos ao trabalho</h2>
+      <div class="addline"><select id="sel-trab"></select><button type="button" class="btn ghost small" id="btn-trab">+ Adicionar</button></div>
+      <div class="chips" id="chips-trab"></div>
+    </div>
+
+    <div class="card">
+      <h2>⚠️ Avaliação de riscos</h2>
+      <div id="risk-rows"></div>
+      <div class="legend">Risco = Severidade × Exposição × Controlo · 1–20 Aceitável (verde) · 21–32 Moderado (amarelo) · ≥33 Crítico (vermelho)</div>
+    </div>
+
+    <div class="card global-strip">
+      <span class="big">NÍVEL DE RISCO GLOBAL:</span><span class="badge bg-none" id="global-badge">—</span>
+    </div>
+
+    <div class="card off" id="loto-card">
+      <h2>🔒 Detalhe LOTO — executantes / cadeados / consignação</h2>
+      <div id="loto-rows"></div>
+      <div class="note">Só preencher quando «Bloqueio/Etiquetagem (LOTO)?» = Sim. Indique o executante, o ID do cadeado e se ficou consignado.</div>
+    </div>
+
+    <div class="card">
+      <h2>✏️ Assinaturas</h2>
+      <div class="sign-row" id="sign-row"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn success" id="btn-emitir">✔ Emitir</button>
+      <button class="btn ghost" id="btn-nova">✚ Nova</button>
+    </div>
+  </section>
+
+  <!-- ============ HISTÓRICO ============ -->
+  <section id="view-hist" class="view" hidden>
+    <div class="card">
+      <h2>📚 Histórico de autorizações</h2>
+      <div class="field"><input type="text" id="hist-search" placeholder="Pesquisar por nº, local, empresa..."></div>
+      <div id="hist-list"></div>
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn ghost small" id="btn-csv">⇩ Exportar CSV</button>
+        <button class="btn ghost small" id="btn-alertas">🔔 Verificar alertas</button>
+      </div>
+      <div class="note" style="margin-top:8px">Registo automático de todas as autorizações emitidas. Não apagar registos.</div>
+    </div>
+  </section>
+
+  <!-- ============ PAINEL ============ -->
+  <section id="view-dash" class="view" hidden>
+    <div class="card">
+      <h2>📊 Painel de controlo</h2>
+      <div class="note" style="margin-bottom:10px">Resumo de estado e risco das autorizações registadas.</div>
+      <div class="kpis" id="dash-kpis"></div>
+      <div class="especiais" id="dash-especiais"></div>
+      <table class="res" id="dash-tabela">
+        <thead><tr><th>Tipo de risco / autorização</th><th style="text-align:right">Total</th><th style="text-align:right">Aberto</th><th style="text-align:right">% do total</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="legend">«Em aberto» = autorizações ainda não fechadas que envolvem cada tipo de risco. Dê prioridade aos valores a vermelho/laranja.</div>
+    </div>
+  </section>
+
+  <!-- ============ LISTAS / CONFIG ============ -->
+  <section id="view-listas" class="view" hidden>
+    <div class="card">
+      <h2>⚙️ Configuração do sistema</h2>
+      <div class="row2">
+        <div class="field"><label>Prefixo</label><input type="text" id="cfg-prefixo"></div>
+        <div class="field"><label>Ano em curso</label><input type="text" id="cfg-ano"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Próximo número</label><input type="number" id="cfg-num"></div>
+        <div class="field"><label>Empresa / Instalação</label><input type="text" id="cfg-empresa"></div>
+      </div>
+      <div class="note">O botão «Emitir» usa e incrementa o «Próximo número» automaticamente (ex.: AT-2026-0001).</div>
+    </div>
+    <div class="card">
+      <h2>🗒️ Listas de referência (menus)</h2>
+      <div id="listas-edit"></div>
+    </div>
+    <div class="card">
+      <h2>💾 Backup</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn ghost small" id="btn-backup">⇩ Exportar dados (JSON)</button>
+        <label class="btn ghost small" style="display:inline-flex;align-items:center">⇧ Importar dados<input type="file" id="file-import" accept="application/json" hidden></label>
+      </div>
+      <div class="note" style="margin-top:8px">Os dados ficam guardados no telemóvel (localStorage). Exporte regularmente para não perder registos.</div>
+    </div>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button class="navbtn on" data-view="form"><span class="ic">📝</span>Nova</button>
+  <button class="navbtn" data-view="hist"><span class="ic">📚</span>Histórico</button>
+  <button class="navbtn" data-view="dash"><span class="ic">📊</span>Painel</button>
+  <button class="navbtn" data-view="listas"><span class="ic">⚙️</span>Listas</button>
+</nav>
+
+<div id="modal-root" hidden>
+  <div class="sheet">
+    <h3 id="modal-title"></h3>
+    <div class="msg" id="modal-msg"></div>
+    <div class="btns" id="modal-btns"></div>
+  </div>
+</div>
+
+<div id="detail-root" hidden>
+  <div class="detail-card" id="detail-sheet"></div>
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
